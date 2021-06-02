@@ -1,3 +1,4 @@
+%%% DEFINICION DE VARIABLES %%%
 imagenMatriz = imread("P1/prueba.jpeg");
 
 imagenLC = rgb2ycbcr(imagenMatriz);
@@ -11,10 +12,10 @@ qImagen  = round([qL, qC, qC]*coefCalidad);
 
 generadaLC = zeros(dimension);
 
-%%%
 cuantizada = zeros(dimension);
-%%%
+%%%%
 
+%%% APLICACION DE TRANSFORMACION Y CUANTIZACION %%%
 for i = 1:dimension(3)
     
     qTemp = qImagen(:, (i-1)*8+1: i*8);
@@ -27,10 +28,8 @@ for i = 1:dimension(3)
             
             sDCTQ = round(subImagenDCT./qTemp);
             
-            %%%%
             cuantizada((j-1)*8+1:j*8, (k-1)*8+1:k*8, i) = sDCTQ;
-            %%%%
-            
+
             sDCTRestaurada = round(qTemp.*sDCTQ);
             
             subImagenRestaurada = idct2(sDCTRestaurada);
@@ -40,14 +39,17 @@ for i = 1:dimension(3)
         end
     end
 end
+%%%%
 
+%%% GUARDAR MATRIZ Y MOSTRAR IMAGEN %%%
 generadaLC=uint8(generadaLC);
 imagenReducida = ycbcr2rgb(generadaLC);
 
 figure
 imshow(imagenReducida)
+%%%%
 
-%%%%%
+%%% CODIFICACION HUFFMAN %%%
 unica = unique(cuantizada);
 cuanLineal = reshape(cuantizada, 1, numel(cuantizada));
 prob = zeros(size(unica));
@@ -65,7 +67,7 @@ llaves = huffmandict(transpose(unica),transpose(prob/sum(prob)));
 clave = huffmanenco(cuanLineal, llaves);
 %%%%
 
-%%%%
+%%% CALCULO DE MEMORIA CODIFICADA %%%
 lCadBinaria = size(clave,2);
 bitsTipoDato = 32; %Un entero ocupa 4 bytes en la mayoría de dispositivos
 valUnicos = size(unica, 1)*bitsTipoDato ;
@@ -74,4 +76,9 @@ for i = 1:size(unica, 1)
 	repreBinaria = repreBinaria + size(llaves{i},2);
 end
 memoriaTotal = lCadBinaria + repreBinaria + valUnicos;
+%%%%
+
+%%% DECODIFICACION HUFFMAN %%%
+cuanDecoLineal = huffmandeco(clave,llaves);
+cuanDecoMatriz = reshape(cuanDeco, dimension);
 %%%%
